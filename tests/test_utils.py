@@ -1,4 +1,5 @@
 """Tests for apps/core/utils.py — cascade_shift_order helper."""
+
 import pytest
 
 from apps.core.utils import cascade_shift_order
@@ -18,9 +19,9 @@ def test_cascade_shift_order_shifts_all_matching(db):
     cat2.refresh_from_db()
     cat3.refresh_from_db()
 
-    assert cat1.order == 1   # below threshold — unchanged
-    assert cat2.order == 3   # shifted
-    assert cat3.order == 4   # shifted
+    assert cat1.order == 1  # below threshold — unchanged
+    assert cat2.order == 3  # shifted
+    assert cat3.order == 4  # shifted
 
 
 @pytest.mark.django_db
@@ -34,8 +35,8 @@ def test_cascade_shift_order_excludes_pk(db):
     cat1.refresh_from_db()
     cat2.refresh_from_db()
 
-    assert cat1.order == 1   # excluded — unchanged
-    assert cat2.order == 3   # shifted
+    assert cat1.order == 1  # excluded — unchanged
+    assert cat2.order == 3  # shifted
 
 
 @pytest.mark.django_db
@@ -46,4 +47,4 @@ def test_cascade_shift_order_no_matches_does_nothing(db):
     cascade_shift_order(Category, from_order=10)
 
     cat.refresh_from_db()
-    assert cat.order == 5   # unchanged
+    assert cat.order == 5  # unchanged

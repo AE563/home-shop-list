@@ -1,4 +1,5 @@
 """Direct unit tests for apps/shop/serializers.py."""
+
 import pytest
 
 from apps.shop.serializers import serialize_category, serialize_purchase
@@ -19,6 +20,7 @@ def test_serialize_category_returns_all_fields(category):
 def test_serialize_category_reflects_actual_values(db):
     """serialize_category reflects the exact field values of the instance."""
     from apps.shop.models import Category
+
     cat = Category.objects.create(name='Зелень', order=5)
     data = serialize_category(cat)
     assert data['name'] == 'Зелень'
@@ -54,8 +56,13 @@ def test_serialize_purchase_quantity_is_string(purchase):
 def test_serialize_purchase_is_need_to_buy_false(db, category, unit):
     """serialize_purchase correctly serializes is_need_to_buy=False."""
     from apps.shop.models import Purchase
+
     p = Purchase.objects.create(
-        name='Кефир', category=category, unit=unit, quantity=1, is_need_to_buy=False,
+        name='Кефир',
+        category=category,
+        unit=unit,
+        quantity=1,
+        is_need_to_buy=False,
     )
     data = serialize_purchase(p)
     assert data['is_need_to_buy'] is False

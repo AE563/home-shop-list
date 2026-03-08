@@ -38,7 +38,6 @@ function loadWS({ protocol = 'http:', host = 'localhost', extraDom = '' } = {}) 
 
   const MockWebSocket = jest.fn(() => mockSocket);
 
-  // eslint-disable-next-line no-new-func
   const fn = new Function(
     'window', 'document', 'location', 'WebSocket', 'setTimeout', 'clearTimeout', 'console',
     WS_CODE
@@ -107,7 +106,6 @@ describe('auto-reconnect', () => {
   test('onclose schedules reconnect via setTimeout', () => {
     const mockSetTimeout = jest.fn();
 
-    // eslint-disable-next-line no-new-func
     const fn = new Function(
       'window', 'document', 'location', 'WebSocket', 'setTimeout', 'clearTimeout', 'console',
       WS_CODE

@@ -6,3 +6,4 @@ python-decouple==3.*
 pytest-django==4.*
 pytest-asyncio==0.23.*
 pytest-cov==4.*
+ruff>=0.4

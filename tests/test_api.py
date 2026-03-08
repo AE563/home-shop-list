@@ -1,14 +1,15 @@
 """API tests: Category и Purchase CRUD + toggle (FR-04, FR-06, FR-07, FR-08, FR-10, FR-11, FR-15)."""
+
 import json
 
 import pytest
 
-from apps.shop.models import Category, Purchase, UnitOfMeasurement
-
+from apps.shop.models import Category, Purchase
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def patch(client, url, data):
     return client.patch(url, json.dumps(data), content_type='application/json')
@@ -21,6 +22,7 @@ def post(client, url, data):
 # ---------------------------------------------------------------------------
 # Category: create (FR-04)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.django_db
 def test_create_category_returns_201(auth_client):
@@ -80,6 +82,7 @@ def test_create_category_requires_login(client):
 # Category: update (FR-06)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.django_db
 def test_update_category_returns_200(auth_client, category):
     """FR-06: PATCH /api/categories/<pk>/ обновляет категорию."""
@@ -125,6 +128,7 @@ def test_update_category_requires_login(client, category):
 # Category: delete (FR-07)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.django_db
 def test_delete_category_returns_200(auth_client, category):
     """FR-07: DELETE /api/categories/<pk>/ удаляет категорию."""
@@ -154,12 +158,20 @@ def test_delete_category_requires_login(client, category):
 # Purchase: create (FR-08)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.django_db
 def test_create_purchase_returns_201(auth_client, category, unit):
     """FR-08: POST /api/purchases/ создаёт товар и возвращает 201."""
-    response = post(auth_client, '/api/purchases/', {
-        'name': 'Молоко', 'quantity': 2, 'category_id': category.pk, 'unit_id': unit.pk,
-    })
+    response = post(
+        auth_client,
+        '/api/purchases/',
+        {
+            'name': 'Молоко',
+            'quantity': 2,
+            'category_id': category.pk,
+            'unit_id': unit.pk,
+        },
+    )
     assert response.status_code == 201
     data = response.json()
     assert data['ok'] is True
@@ -170,9 +182,16 @@ def test_create_purchase_returns_201(auth_client, category, unit):
 @pytest.mark.django_db
 def test_create_purchase_empty_name_returns_400(auth_client, category, unit):
     """FR-08: Пустое имя товара → 400."""
-    response = post(auth_client, '/api/purchases/', {
-        'name': '', 'quantity': 1, 'category_id': category.pk, 'unit_id': unit.pk,
-    })
+    response = post(
+        auth_client,
+        '/api/purchases/',
+        {
+            'name': '',
+            'quantity': 1,
+            'category_id': category.pk,
+            'unit_id': unit.pk,
+        },
+    )
     assert response.status_code == 400
 
 
@@ -184,16 +203,23 @@ def test_create_purchase_invalid_json_returns_400(auth_client):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("quantity", [0, -1, -0.5])
+@pytest.mark.parametrize('quantity', [0, -1, -0.5])
 def test_create_purchase_non_positive_quantity_returns_400(auth_client, category, unit, quantity):
     """FR-08: Количество ≤ 0 → 400.
 
     Args:
         quantity: Недопустимое количество.
     """
-    response = post(auth_client, '/api/purchases/', {
-        'name': 'Молоко', 'quantity': quantity, 'category_id': category.pk, 'unit_id': unit.pk,
-    })
+    response = post(
+        auth_client,
+        '/api/purchases/',
+        {
+            'name': 'Молоко',
+            'quantity': quantity,
+            'category_id': category.pk,
+            'unit_id': unit.pk,
+        },
+    )
     assert response.status_code == 400
     assert 'больше 0' in response.json()['error']
 
@@ -201,18 +227,32 @@ def test_create_purchase_non_positive_quantity_returns_400(auth_client, category
 @pytest.mark.django_db
 def test_create_purchase_unknown_category_returns_404(auth_client, unit):
     """FR-08: Несуществующая категория → 404."""
-    response = post(auth_client, '/api/purchases/', {
-        'name': 'Молоко', 'quantity': 1, 'category_id': 9999, 'unit_id': unit.pk,
-    })
+    response = post(
+        auth_client,
+        '/api/purchases/',
+        {
+            'name': 'Молоко',
+            'quantity': 1,
+            'category_id': 9999,
+            'unit_id': unit.pk,
+        },
+    )
     assert response.status_code == 404
 
 
 @pytest.mark.django_db
 def test_create_purchase_requires_login(client, category, unit):
     """FR-03: Создание товара без авторизации → 302."""
-    response = post(client, '/api/purchases/', {
-        'name': 'Молоко', 'quantity': 1, 'category_id': category.pk, 'unit_id': unit.pk,
-    })
+    response = post(
+        client,
+        '/api/purchases/',
+        {
+            'name': 'Молоко',
+            'quantity': 1,
+            'category_id': category.pk,
+            'unit_id': unit.pk,
+        },
+    )
     assert response.status_code == 302
 
 
@@ -220,12 +260,19 @@ def test_create_purchase_requires_login(client, category, unit):
 # Purchase: update (FR-10)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.django_db
 def test_update_purchase_returns_200(auth_client, purchase, unit):
     """FR-10: PATCH /api/purchases/<pk>/ обновляет товар."""
-    response = patch(auth_client, f'/api/purchases/{purchase.pk}/', {
-        'name': 'Сыр', 'quantity': 0.3, 'unit_id': unit.pk,
-    })
+    response = patch(
+        auth_client,
+        f'/api/purchases/{purchase.pk}/',
+        {
+            'name': 'Сыр',
+            'quantity': 0.3,
+            'unit_id': unit.pk,
+        },
+    )
     assert response.status_code == 200
     data = response.json()
     assert data['ok'] is True
@@ -243,16 +290,22 @@ def test_update_purchase_empty_name_returns_400(auth_client, purchase):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("quantity", [0, -1])
+@pytest.mark.parametrize('quantity', [0, -1])
 def test_update_purchase_non_positive_quantity_returns_400(auth_client, purchase, unit, quantity):
     """FR-10: Количество ≤ 0 при обновлении → 400.
 
     Args:
         quantity: Недопустимое количество.
     """
-    response = patch(auth_client, f'/api/purchases/{purchase.pk}/', {
-        'name': 'Молоко', 'quantity': quantity, 'unit_id': unit.pk,
-    })
+    response = patch(
+        auth_client,
+        f'/api/purchases/{purchase.pk}/',
+        {
+            'name': 'Молоко',
+            'quantity': quantity,
+            'unit_id': unit.pk,
+        },
+    )
     assert response.status_code == 400
 
 
@@ -273,6 +326,7 @@ def test_update_purchase_requires_login(client, purchase, unit):
 # ---------------------------------------------------------------------------
 # Purchase: delete (FR-11)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.django_db
 def test_delete_purchase_returns_200(auth_client, purchase):
@@ -302,8 +356,9 @@ def test_delete_purchase_requires_login(client, purchase):
 # Purchase: toggle (FR-15)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.django_db
-@pytest.mark.parametrize("initial,new_value", [(True, False), (False, True)])
+@pytest.mark.parametrize('initial,new_value', [(True, False), (False, True)])
 def test_toggle_purchase_changes_status(auth_client, purchase, initial, new_value):
     """FR-15: PATCH /api/purchases/<pk>/toggle/ переключает статус.
 
@@ -314,9 +369,13 @@ def test_toggle_purchase_changes_status(auth_client, purchase, initial, new_valu
     purchase.is_need_to_buy = initial
     purchase.save(update_fields=['is_need_to_buy', 'updated_at'])
 
-    response = patch(auth_client, f'/api/purchases/{purchase.pk}/toggle/', {
-        'is_need_to_buy': new_value,
-    })
+    response = patch(
+        auth_client,
+        f'/api/purchases/{purchase.pk}/toggle/',
+        {
+            'is_need_to_buy': new_value,
+        },
+    )
     assert response.status_code == 200
     data = response.json()
     assert data['ok'] is True
@@ -329,9 +388,7 @@ def test_toggle_purchase_changes_status(auth_client, purchase, initial, new_valu
 @pytest.mark.django_db
 def test_toggle_purchase_invalid_json_returns_400(auth_client, purchase):
     """FR-15: Невалидный JSON при toggle → 400."""
-    response = auth_client.patch(
-        f'/api/purchases/{purchase.pk}/toggle/', 'bad', content_type='application/json'
-    )
+    response = auth_client.patch(f'/api/purchases/{purchase.pk}/toggle/', 'bad', content_type='application/json')
     assert response.status_code == 400
 
 
@@ -352,6 +409,7 @@ def test_toggle_purchase_requires_login(client, purchase):
 # ---------------------------------------------------------------------------
 # Edge cases: wrong HTTP method (405)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.django_db
 def test_category_detail_wrong_method_returns_405(auth_client, category):

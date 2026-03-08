@@ -3,10 +3,14 @@
   "private": true,
   "scripts": {
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "lint": "eslint static/js/ tests/js/",
+    "lint:fix": "eslint static/js/ tests/js/ --fix"
   },
   "devDependencies": {
     "jest": "^29.0.0",
-    "jest-environment-jsdom": "^29.0.0"
+    "jest-environment-jsdom": "^29.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0"
   }
 }

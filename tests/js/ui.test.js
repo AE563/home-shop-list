@@ -52,7 +52,6 @@ function loadUI() {
   // Evaluate the script and expose getCookie
   // new Function avoids module-scope pollution; getCookie is accessible
   // within the function body (strict mode scoping) and we re-export it.
-  // eslint-disable-next-line no-new-func
   const fn = new Function(
     'window', 'document', 'location', 'console', 'fetch', 'confirm',
     UI_CODE + '\nwindow._getCookie = getCookie;'
@@ -70,8 +69,6 @@ beforeAll(() => {
 
 afterEach(() => {
   // Remove DOM nodes added during individual tests (keep #shop-edit scaffold)
-  const shopEdit = document.getElementById('shop-edit');
-  // Remove anything after the base scaffold (category-blocks, etc.)
   document.querySelectorAll('.category-block').forEach(el => el.remove());
   document.querySelectorAll('#shop-view').forEach(el => el.remove());
   document.querySelectorAll('#btn-toggle-all').forEach(el => el.remove());
@@ -268,7 +265,7 @@ describe('accordion', () => {
 // ---------------------------------------------------------------------------
 
 describe('collapse-all button', () => {
-  let btnToggleAll, bodies;
+  let btnToggleAll;
 
   beforeEach(() => {
     document.body.insertAdjacentHTML('beforeend', `
@@ -277,7 +274,6 @@ describe('collapse-all button', () => {
       <div class="category-body">B</div>
     `);
     btnToggleAll = document.getElementById('btn-toggle-all');
-    bodies = document.querySelectorAll('.category-body');
 
     // The event listener was registered at load time.
     // We need to trigger a fresh listener by re-reading the button reference.

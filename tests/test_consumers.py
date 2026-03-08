@@ -1,17 +1,18 @@
 """WebSocket consumer tests (FR-03, FR-18, FR-19)."""
-import pytest
+
 from unittest.mock import MagicMock
 
-from channels.layers import channel_layers, InMemoryChannelLayer, get_channel_layer
+import pytest
+from channels.layers import InMemoryChannelLayer, channel_layers, get_channel_layer
 from channels.testing import WebsocketCommunicator
-from config.asgi import application
 
 from apps.shop.consumers import ShopConsumer
-
+from config.asgi import application
 
 # ---------------------------------------------------------------------------
 # Fixture: in-memory channel layer (no Redis required)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def memory_channel_layer():
@@ -34,6 +35,7 @@ def _mock_user(authenticated=True):
 # Unauthenticated rejection (FR-03)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_unauthenticated_ws_connection_rejected():
     """FR-03: Unauthenticated WebSocket connection must be closed immediately."""
@@ -46,6 +48,7 @@ async def test_unauthenticated_ws_connection_rejected():
 # ---------------------------------------------------------------------------
 # Authenticated connect
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_authenticated_user_can_connect(memory_channel_layer):
@@ -71,21 +74,25 @@ async def test_unauthenticated_consumer_closes(memory_channel_layer):
 # Broadcast: purchase events
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize('event_type,payload', [
-    (
-        'purchase.created',
-        {'type': 'purchase.created', 'purchase': {'id': 1, 'name': 'Молоко', 'is_need_to_buy': True}},
-    ),
-    (
-        'purchase.updated',
-        {'type': 'purchase.updated', 'purchase': {'id': 1, 'is_need_to_buy': False}},
-    ),
-    (
-        'purchase.deleted',
-        {'type': 'purchase.deleted', 'purchase_id': 1},
-    ),
-])
+@pytest.mark.parametrize(
+    'event_type,payload',
+    [
+        (
+            'purchase.created',
+            {'type': 'purchase.created', 'purchase': {'id': 1, 'name': 'Молоко', 'is_need_to_buy': True}},
+        ),
+        (
+            'purchase.updated',
+            {'type': 'purchase.updated', 'purchase': {'id': 1, 'is_need_to_buy': False}},
+        ),
+        (
+            'purchase.deleted',
+            {'type': 'purchase.deleted', 'purchase_id': 1},
+        ),
+    ],
+)
 async def test_receives_broadcast_purchase_events(memory_channel_layer, event_type, payload):
     """Consumer forwards purchase events from channel layer to WebSocket client."""
     communicator = WebsocketCommunicator(ShopConsumer.as_asgi(), '/ws/shop/')
@@ -105,21 +112,25 @@ async def test_receives_broadcast_purchase_events(memory_channel_layer, event_ty
 # Broadcast: category events
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize('event_type,payload', [
-    (
-        'category.created',
-        {'type': 'category.created', 'category': {'id': 7, 'name': 'Зелень', 'order': 2}},
-    ),
-    (
-        'category.updated',
-        {'type': 'category.updated', 'category': {'id': 7, 'name': 'Зелень', 'order': 3}},
-    ),
-    (
-        'category.deleted',
-        {'type': 'category.deleted', 'category_id': 7},
-    ),
-])
+@pytest.mark.parametrize(
+    'event_type,payload',
+    [
+        (
+            'category.created',
+            {'type': 'category.created', 'category': {'id': 7, 'name': 'Зелень', 'order': 2}},
+        ),
+        (
+            'category.updated',
+            {'type': 'category.updated', 'category': {'id': 7, 'name': 'Зелень', 'order': 3}},
+        ),
+        (
+            'category.deleted',
+            {'type': 'category.deleted', 'category_id': 7},
+        ),
+    ],
+)
 async def test_receives_broadcast_category_events(memory_channel_layer, event_type, payload):
     """Consumer forwards category events from channel layer to WebSocket client."""
     communicator = WebsocketCommunicator(ShopConsumer.as_asgi(), '/ws/shop/')

@@ -5,17 +5,17 @@ from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
 from .consumers import ShopConsumer
 from .models import Category, Purchase, UnitOfMeasurement
 from .serializers import serialize_category, serialize_purchase
 
-
 # ---------------------------------------------------------------------------
 # WebSocket broadcast helper (FR-18)
 # ---------------------------------------------------------------------------
+
 
 def _broadcast(event_type, payload):
     """Push a JSON event to all WS clients in the shop group.
@@ -36,6 +36,7 @@ def _broadcast(event_type, payload):
 # Pages
 # ---------------------------------------------------------------------------
 
+
 @login_required
 def view_page(request):
     """FR-12: Show only categories that have at least one is_need_to_buy=True purchase."""
@@ -55,13 +56,12 @@ def edit_page(request):
 # Purchase: toggle (FR-15)
 # ---------------------------------------------------------------------------
 
+
 @login_required
 @require_http_methods(['PATCH'])
 def toggle_purchase(request, pk):
     """FR-15: Toggle is_need_to_buy for a purchase via AJAX PATCH."""
-    purchase = get_object_or_404(
-        Purchase.objects.select_related('unit', 'category'), pk=pk
-    )
+    purchase = get_object_or_404(Purchase.objects.select_related('unit', 'category'), pk=pk)
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
@@ -76,6 +76,7 @@ def toggle_purchase(request, pk):
 # ---------------------------------------------------------------------------
 # Category CRUD (FR-04, FR-06, FR-07)
 # ---------------------------------------------------------------------------
+
 
 @login_required
 @require_http_methods(['POST'])
@@ -144,6 +145,7 @@ def category_detail(request, pk):
 # Purchase CRUD (FR-08, FR-10, FR-11)
 # ---------------------------------------------------------------------------
 
+
 @login_required
 @require_http_methods(['POST'])
 def create_purchase(request):
@@ -169,7 +171,11 @@ def create_purchase(request):
     unit = get_object_or_404(UnitOfMeasurement, pk=data.get('unit_id'))
 
     purchase = Purchase.objects.create(
-        name=name, quantity=quantity, category=category, unit=unit, is_need_to_buy=True,
+        name=name,
+        quantity=quantity,
+        category=category,
+        unit=unit,
+        is_need_to_buy=True,
     )
     payload = serialize_purchase(purchase)
     _broadcast('purchase.created', {'purchase': payload})
@@ -180,9 +186,7 @@ def create_purchase(request):
 @require_http_methods(['PATCH', 'DELETE'])
 def purchase_detail(request, pk):
     """FR-10/11: Update or delete a purchase."""
-    purchase = get_object_or_404(
-        Purchase.objects.select_related('unit', 'category'), pk=pk
-    )
+    purchase = get_object_or_404(Purchase.objects.select_related('unit', 'category'), pk=pk)
 
     if request.method == 'DELETE':
         pk_int = purchase.pk

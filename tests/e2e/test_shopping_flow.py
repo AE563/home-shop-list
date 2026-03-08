@@ -1,4 +1,5 @@
 """E2E tests (Selenium). Skeleton — to be expanded with view/edit page implementation."""
+
 import pytest
 
 
@@ -8,9 +9,7 @@ def test_uncheck_item_removes_it_from_view(browser, live_server, setup_data):
     from selenium.webdriver.common.by import By
 
     browser.get(f'{live_server.url}/')
-    checkbox = browser.find_element(
-        By.CSS_SELECTOR, "[data-purchase-id='1'] input[type=checkbox]"
-    )
+    checkbox = browser.find_element(By.CSS_SELECTOR, "[data-purchase-id='1'] input[type=checkbox]")
     checkbox.click()
 
     items = browser.find_elements(By.CSS_SELECTOR, "[data-purchase-id='1']")

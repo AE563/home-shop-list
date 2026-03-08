@@ -21,6 +21,7 @@ def auth_client(client, user):
 def unit(db):
     """Default unit of measurement for tests."""
     from apps.shop.models import UnitOfMeasurement
+
     return UnitOfMeasurement.objects.create(name='Штуки', abbreviation='шт.')
 
 
@@ -28,6 +29,7 @@ def unit(db):
 def category(db):
     """Default category for tests."""
     from apps.shop.models import Category
+
     return Category.objects.create(name='Молочное', order=1)
 
 
@@ -35,6 +37,11 @@ def category(db):
 def purchase(db, category, unit):
     """Default purchase for tests."""
     from apps.shop.models import Purchase
+
     return Purchase.objects.create(
-        name='Молоко', category=category, unit=unit, quantity=2, is_need_to_buy=True,
+        name='Молоко',
+        category=category,
+        unit=unit,
+        quantity=2,
+        is_need_to_buy=True,
     )

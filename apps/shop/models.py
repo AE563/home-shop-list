@@ -5,17 +5,9 @@ from django.db.models import F, Prefetch
 class CategoryQuerySet(models.QuerySet):
     def with_active_purchases(self):
         """FR-12: Categories with is_need_to_buy=True purchases prefetched."""
-        need_to_buy_qs = (
-            Purchase.objects
-            .filter(is_need_to_buy=True)
-            .select_related('unit')
-            .order_by('name')
-        )
+        need_to_buy_qs = Purchase.objects.filter(is_need_to_buy=True).select_related('unit').order_by('name')
         return (
-            self
-            .prefetch_related(
-                Prefetch('purchases', queryset=need_to_buy_qs, to_attr='active_purchases')
-            )
+            self.prefetch_related(Prefetch('purchases', queryset=need_to_buy_qs, to_attr='active_purchases'))
             .filter(purchases__is_need_to_buy=True)
             .distinct()
             .order_by('order', 'name')
@@ -24,12 +16,8 @@ class CategoryQuerySet(models.QuerySet):
     def with_all_purchases(self):
         """FR-13: All categories with all purchases prefetched."""
         all_qs = Purchase.objects.select_related('unit').order_by('name')
-        return (
-            self
-            .prefetch_related(
-                Prefetch('purchases', queryset=all_qs, to_attr='all_purchases')
-            )
-            .order_by('order', 'name')
+        return self.prefetch_related(Prefetch('purchases', queryset=all_qs, to_attr='all_purchases')).order_by(
+            'order', 'name'
         )
 
 
@@ -93,7 +81,7 @@ class Purchase(models.Model):
         indexes = [models.Index(fields=['is_need_to_buy'])]
 
     def __str__(self):
-        return f"{self.name} ({self.quantity:.2f} {self.unit.abbreviation})"
+        return f'{self.name} ({self.quantity:.2f} {self.unit.abbreviation})'
 
     def set_need_to_buy(self, value: bool) -> None:
         """FR-15: Set buy status and persist only relevant fields."""
