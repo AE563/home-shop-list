@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Вход — Список покупок{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-12 col-sm-8 col-md-5 col-lg-4">
+        <h1 class="text-center mb-4">Список покупок</h1>
+
+        {% if error %}
+        <div class="alert alert-danger py-2" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'users:login' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="username" class="form-label">Email или имя пользователя</label>
+                <input type="text"
+                       id="username"
+                       name="username"
+                       class="form-control"
+                       autocomplete="username"
+                       autofocus
+                       required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Пароль</label>
+                <input type="password"
+                       id="password"
+                       name="password"
+                       class="form-control"
+                       autocomplete="current-password"
+                       required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Войти</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+[
+  {"model": "shop.unitofmeasurement", "pk": 1, "fields": {"name": "Штуки",      "abbreviation": "шт."}},
+  {"model": "shop.unitofmeasurement", "pk": 2, "fields": {"name": "Килограммы", "abbreviation": "кг"}},
+  {"model": "shop.unitofmeasurement", "pk": 3, "fields": {"name": "Граммы",     "abbreviation": "г"}},
+  {"model": "shop.unitofmeasurement", "pk": 4, "fields": {"name": "Литры",      "abbreviation": "л"}},
+  {"model": "shop.unitofmeasurement", "pk": 5, "fields": {"name": "Миллилитры", "abbreviation": "мл"}}
+]

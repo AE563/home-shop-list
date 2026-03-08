@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+
+# Virtual environments
+.venv/
+.venv2/
+venv/
+env/
+
+# Django
+*.sqlite3
+*.log
+media/
+staticfiles/
+local_settings.py
+
+# Environment variables (contains secrets)
+.env
+.env.*
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+
+# Node
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/
+.agents/

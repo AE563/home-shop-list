@@ -1,0 +1,8 @@
+django==4.2.*
+channels[daphne]==4.*
+channels-redis==4.*
+redis==5.*
+python-decouple==3.*
+pytest-django==4.*
+pytest-asyncio==0.23.*
+pytest-cov==4.*

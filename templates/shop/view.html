@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Просмотр — Список покупок{% endblock %}
+
+{% block content %}
+<div id="shop-view">
+    {% for category in categories %}
+    <div class="category-block" data-category-id="{{ category.pk }}">
+
+        <div class="category-header">
+            <span class="fw-semibold">{{ category.name }}</span>
+            <i class="bi bi-chevron-down collapse-icon"></i>
+        </div>
+
+        <div class="category-body">
+            {% for purchase in category.active_purchases %}
+            <div class="purchase-item" data-purchase-id="{{ purchase.pk }}">
+                <input type="checkbox"
+                       class="toggle-checkbox"
+                       id="vp{{ purchase.pk }}"
+                       data-purchase-id="{{ purchase.pk }}"
+                       checked>
+                <label for="vp{{ purchase.pk }}" class="flex-grow-1 mb-0">
+                    <span>{{ purchase.name }}<small class="text-muted ms-1">— {{ purchase.quantity|floatformat:"-2" }} {{ purchase.unit.abbreviation }}</small></span>
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+    {% empty %}
+    <div class="text-center py-5" id="empty-state">
+        <i class="bi bi-basket2 d-block fs-1 text-secondary mb-2 opacity-50"></i>
+        <p class="text-muted mb-0">Всё куплено! Список покупок пуст.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
