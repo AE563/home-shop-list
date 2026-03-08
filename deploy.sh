@@ -20,7 +20,7 @@ fi
 
 if [ "$SKIP_TESTS" = false ]; then
   echo "==> Python tests"
-  pytest -q --tb=short
+  .venv/bin/pytest -q --tb=short
 
   echo ""
   echo "==> JS tests"
