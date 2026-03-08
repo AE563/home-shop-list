@@ -2,7 +2,7 @@
 set -e
 
 REMOTE=landvps
-REMOTE_DIR=~/home-shop-list
+REMOTE_DIR='~/home-shop-list'
 SKIP_TESTS=false
 
 for arg in "$@"; do
