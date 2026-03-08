@@ -1,0 +1,15 @@
+services:
+  web:
+    image: home-shop-list:latest
+    build: .
+    container_name: groceries_web
+    expose:
+      - "8000"
+    env_file: .env
+    restart: unless-stopped
+    networks:
+      - shared_net
+
+networks:
+  shared_net:
+    external: true

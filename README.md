@@ -4,7 +4,6 @@
 
 **Семейный список покупок с синхронизацией в реальном времени**
 
-[![CI](https://github.com/AE563/home-shop-list/actions/workflows/ci.yml/badge.svg)](https://github.com/AE563/home-shop-list/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/django-4.2-green?logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -27,12 +26,11 @@
 
 ---
 
-## Быстрый старт
+## Быстрый старт (Docker)
 
 ### Требования
 
-- Python 3.12+
-- Redis 7+
+- Docker + Docker Compose
 - Node.js 20+ (только для JS-тестов)
 
 ### Установка
@@ -42,28 +40,15 @@
 git clone git@github.com:AE563/home-shop-list.git
 cd home-shop-list
 
-# Создать виртуальное окружение и установить зависимости
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# Создать .env файл и задать секреты
+cp .env.example .env   # отредактируйте SECRET_KEY и DB_PASSWORD
 
-# Создать .env файл
-cp .env.example .env   # отредактируйте SECRET_KEY и REDIS_URL
+# Запустить контейнеры (web + postgres + redis)
+docker compose up -d
 
-# Применить миграции
-python manage.py migrate
-
-# Загрузить начальные данные (единицы измерения)
-python manage.py loaddata fixtures/units.json
-
-# Создать суперпользователя
-python manage.py createsuperuser
-
-# Запустить Redis (если не запущен)
-redis-server --daemonize yes
-
-# Запустить сервер
-python manage.py runserver
+# Первый запуск — загрузить данные и создать суперпользователя
+docker compose exec web python manage.py loaddata fixtures/units.json
+docker compose exec web python manage.py createsuperuser
 ```
 
 Открыть: [http://localhost:8000](http://localhost:8000)
@@ -71,10 +56,25 @@ python manage.py runserver
 ### Переменные окружения (.env)
 
 ```ini
-SECRET_KEY=your-secret-key-here
+SECRET_KEY=replace-with-a-long-random-string
 DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-REDIS_URL=redis://localhost:6379/0
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+REDIS_URL=redis://redis:6379/0
+
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=groceries_db
+DB_USER=groceries
+DB_PASSWORD=changeme
+DB_HOST=db
+DB_PORT=5432
+```
+
+### Деплой на VPS
+
+```bash
+# Один раз настроить SSH-alias landvps и создать ~/home-shop-list на сервере
+./deploy.sh   # push + ssh pull + docker compose up --build
 ```
 
 ---
@@ -120,7 +120,7 @@ REDIS_URL=redis://localhost:6379/0
 | Backend | Django 4.2 |
 | WebSocket | Django Channels 4 + Daphne (ASGI) |
 | Channel layer | Redis 7 |
-| База данных | SQLite |
+| База данных | PostgreSQL 15 (SQLite для локальной разработки без Docker) |
 | Конфигурация | python-decouple |
 | Frontend | Vanilla JS (ES6+), Bootstrap 5 |
 | Линтер Python | Ruff |

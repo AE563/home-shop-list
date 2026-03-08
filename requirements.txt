@@ -3,6 +3,7 @@ channels[daphne]==4.*
 channels-redis==4.*
 redis==5.*
 python-decouple==3.*
+psycopg2-binary==2.*
 pytest-django==4.*
 pytest-asyncio==0.23.*
 pytest-cov==4.*

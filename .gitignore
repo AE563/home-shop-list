@@ -22,6 +22,7 @@ local_settings.py
 # Environment variables (contains secrets)
 .env
 .env.*
+!.env.example
 
 # Coverage
 .coverage
