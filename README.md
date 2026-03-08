@@ -5,7 +5,6 @@
 **Семейный список покупок с синхронизацией в реальном времени**
 
 [![CI](https://github.com/AE563/home-shop-list/actions/workflows/ci.yml/badge.svg)](https://github.com/AE563/home-shop-list/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/AE563/home-shop-list/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/AE563/home-shop-list)
 [![Python](https://img.shields.io/badge/python-3.12-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/django-4.2-green?logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
