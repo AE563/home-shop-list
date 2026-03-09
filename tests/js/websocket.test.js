@@ -8,6 +8,11 @@
 const fs = require('fs');
 const path = require('path');
 
+const UTILS_CODE = fs.readFileSync(
+  path.join(__dirname, '../../static/js/utils.js'),
+  'utf8'
+);
+
 const WS_CODE = fs.readFileSync(
   path.join(__dirname, '../../static/js/websocket.js'),
   'utf8'
@@ -40,7 +45,7 @@ function loadWS({ protocol = 'http:', host = 'localhost', extraDom = '' } = {}) 
 
   const fn = new Function(
     'window', 'document', 'location', 'WebSocket', 'setTimeout', 'clearTimeout', 'console',
-    WS_CODE
+    UTILS_CODE + '\n' + WS_CODE
   );
   fn(
     window, document,
@@ -108,7 +113,7 @@ describe('auto-reconnect', () => {
 
     const fn = new Function(
       'window', 'document', 'location', 'WebSocket', 'setTimeout', 'clearTimeout', 'console',
-      WS_CODE
+      UTILS_CODE + '\n' + WS_CODE
     );
     document.body.innerHTML = '<div id="offline-banner"></div>';
     const mockSocket = {

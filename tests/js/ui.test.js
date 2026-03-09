@@ -8,6 +8,11 @@
 const fs = require('fs');
 const path = require('path');
 
+const UTILS_CODE = fs.readFileSync(
+  path.join(__dirname, '../../static/js/utils.js'),
+  'utf8'
+);
+
 const UI_CODE = fs.readFileSync(
   path.join(__dirname, '../../static/js/ui.js'),
   'utf8'
@@ -54,7 +59,7 @@ function loadUI() {
   // within the function body (strict mode scoping) and we re-export it.
   const fn = new Function(
     'window', 'document', 'location', 'console', 'fetch', 'confirm',
-    UI_CODE + '\nwindow._getCookie = getCookie;'
+    UTILS_CODE + '\n' + UI_CODE + '\nwindow._getCookie = getCookie;'
   );
   fn(window, document, window.location, console, global.fetch, global.confirm);
 }

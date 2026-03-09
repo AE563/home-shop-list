@@ -76,23 +76,8 @@
         if (fn) fn(data);
     }
 
-    // -----------------------------------------------------------------------
-    // Helpers (duplicated from ui.js scope — same logic, different scope)
-    // -----------------------------------------------------------------------
     var isViewPage = !!document.getElementById('shop-view');
     var isEditPage = !!document.getElementById('shop-edit');
-
-    function esc(s) {
-        return String(s)
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function fmtQty(qty) {
-        var n = parseFloat(qty);
-        if (isNaN(n)) return String(qty);
-        return n === Math.floor(n) ? String(n) : n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
-    }
 
     // -----------------------------------------------------------------------
     // Purchase handlers
@@ -124,7 +109,7 @@
             } else {
                 if (viewItem) {
                     var span = viewItem.querySelector('span');
-                    if (span) span.innerHTML = esc(p.name) + '<small class="text-muted ms-1">— ' + esc(fmtQty(p.quantity)) + ' ' + esc(p.unit_abbreviation) + '</small>';
+                    if (span) span.innerHTML = window.shopUtils.esc(p.name) + '<small class="text-muted ms-1">— ' + window.shopUtils.fmtQty(p.quantity) + ' ' + window.shopUtils.esc(p.unit_abbreviation) + '</small>';
                 } else {
                     insertPurchaseIntoView(p);
                 }
@@ -136,7 +121,7 @@
             if (!item) return;
             // Update display text
             var span = item.querySelector('.purchase-display .flex-grow-1');
-            if (span) span.textContent = p.name + ' — ' + fmtQty(p.quantity) + ' ' + p.unit_abbreviation;
+            if (span) span.textContent = p.name + ' — ' + window.shopUtils.fmtQty(p.quantity) + ' ' + p.unit_abbreviation;
             // Update checkbox + dim
             var cb = item.querySelector('.toggle-checkbox');
             if (cb) cb.checked = p.is_need_to_buy;
@@ -247,7 +232,7 @@
         div.innerHTML =
             '<input type="checkbox" class="toggle-checkbox" id="' + cid + '" data-purchase-id="' + p.id + '" checked>' +
             '<label for="' + cid + '" class="flex-grow-1 mb-0">' +
-            '<span>' + esc(p.name) + '<small class="text-muted ms-1">— ' + esc(fmtQty(p.quantity)) + ' ' + esc(p.unit_abbreviation) + '</small></span>' +
+            '<span>' + window.shopUtils.esc(p.name) + '<small class="text-muted ms-1">— ' + window.shopUtils.fmtQty(p.quantity) + ' ' + window.shopUtils.esc(p.unit_abbreviation) + '</small></span>' +
             '</label>';
         return div;
     }
@@ -258,7 +243,7 @@
         div.dataset.categoryId = p.category_id;
         div.innerHTML =
             '<div class="category-header">' +
-            '  <span class="fw-semibold">' + esc(p.category_name) + '</span>' +
+            '  <span class="fw-semibold">' + window.shopUtils.esc(p.category_name) + '</span>' +
             '  <i class="bi bi-chevron-down collapse-icon"></i>' +
             '</div>' +
             '<div class="category-body"></div>';

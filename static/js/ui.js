@@ -120,26 +120,14 @@ function removePurchaseFromView(pk) {
         });
     }
 
-    function esc(s) {
-        return String(s)
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function fmtQty(qty) {
-        var n = parseFloat(qty);
-        if (isNaN(n)) return String(qty);
-        return n === Math.floor(n) ? String(n) : n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
-    }
-
     // Build <option> tags from the hidden #units-ref select
     function unitsHtml(selectedId) {
         var ref = document.getElementById('units-ref');
         if (!ref) return '';
         return Array.from(ref.options).map(function (o) {
-            return '<option value="' + esc(o.value) + '"' +
+            return '<option value="' + window.shopUtils.esc(o.value) + '"' +
                 (String(o.value) === String(selectedId) ? ' selected' : '') +
-                '>' + esc(o.text) + '</option>';
+                '>' + window.shopUtils.esc(o.text) + '</option>';
         }).join('');
     }
 
@@ -371,7 +359,7 @@ function removePurchaseFromView(pk) {
                 .then(function (data) {
                     var p = data.purchase;
                     item.querySelector('.purchase-display .flex-grow-1').textContent =
-                        p.name + ' — ' + fmtQty(p.quantity) + ' ' + p.unit_abbreviation;
+                        p.name + ' — ' + window.shopUtils.fmtQty(p.quantity) + ' ' + p.unit_abbreviation;
                     nameEl.value = p.name;
                     item.querySelector('.edit-purchase-quantity').value = p.quantity;
                     item.querySelector('.purchase-display').style.display = '';
@@ -417,21 +405,21 @@ function removePurchaseFromView(pk) {
             '  <div class="d-flex align-items-center gap-2 overflow-hidden">' +
             '    <i class="bi bi-chevron-down collapse-icon"></i>' +
             '    <div class="overflow-hidden">' +
-            '      <div class="fw-semibold text-truncate category-name-display">' + esc(cat.name) + '</div>' +
+            '      <div class="fw-semibold text-truncate category-name-display">' + window.shopUtils.esc(cat.name) + '</div>' +
             '      <div class="priority-badge">приоритет: ' + cat.order + '</div>' +
             '    </div>' +
             '  </div>' +
             '  <div class="d-flex gap-1 flex-shrink-0 ms-2">' +
             '    <button class="btn btn-sm btn-link p-1 text-secondary btn-edit-category" data-category-id="' + cat.id + '"><i class="bi bi-pencil-square"></i></button>' +
             '    <button class="btn btn-sm btn-link p-1 text-danger btn-delete-category"' +
-            '      data-category-id="' + cat.id + '" data-category-name="' + esc(cat.name) + '" data-purchase-count="0"><i class="bi bi-trash3"></i></button>' +
+            '      data-category-id="' + cat.id + '" data-category-name="' + window.shopUtils.esc(cat.name) + '" data-purchase-count="0"><i class="bi bi-trash3"></i></button>' +
             '  </div>' +
             '</div>' +
             '<div class="category-edit-form card border-primary mb-1" style="display:none;">' +
             '  <div class="card-body py-2">' +
             '    <div class="row g-2 align-items-end">' +
             '      <div class="col-8"><label class="form-label mb-1 small">Название</label>' +
-            '        <input type="text" class="edit-cat-name form-control form-control-sm" value="' + esc(cat.name) + '">' +
+            '        <input type="text" class="edit-cat-name form-control form-control-sm" value="' + window.shopUtils.esc(cat.name) + '">' +
             '        <div class="invalid-feedback edit-cat-name-error"></div></div>' +
             '      <div class="col-4"><label class="form-label mb-1 small">Приоритет</label>' +
             '        <input type="number" class="edit-cat-order form-control form-control-sm" value="' + cat.order + '" min="1"></div>' +
@@ -475,13 +463,13 @@ function removePurchaseFromView(pk) {
         div.innerHTML =
             '<div class="purchase-display d-flex align-items-center w-100 gap-2">' +
             '  <input type="checkbox" class="toggle-checkbox flex-shrink-0" data-purchase-id="' + p.id + '"' + (p.is_need_to_buy ? ' checked' : '') + '>' +
-            '  <span class="flex-grow-1 small">' + esc(p.name) + ' — ' + esc(fmtQty(p.quantity)) + ' ' + esc(p.unit_abbreviation) + '</span>' +
+            '  <span class="flex-grow-1 small">' + window.shopUtils.esc(p.name) + ' — ' + window.shopUtils.fmtQty(p.quantity) + ' ' + window.shopUtils.esc(p.unit_abbreviation) + '</span>' +
             '  <button class="btn btn-sm btn-link p-1 btn-edit-purchase" data-purchase-id="' + p.id + '"><i class="bi bi-pencil"></i></button>' +
             '  <button class="btn btn-sm btn-link p-1 text-danger btn-delete-purchase" data-purchase-id="' + p.id + '"><i class="bi bi-trash"></i></button>' +
             '</div>' +
             '<div class="purchase-edit-form w-100 bg-white border-top p-2" style="display:none;">' +
             '  <div class="row g-2">' +
-            '    <div class="col-12"><input type="text" class="edit-purchase-name form-control form-control-sm" value="' + esc(p.name) + '" placeholder="Название">' +
+            '    <div class="col-12"><input type="text" class="edit-purchase-name form-control form-control-sm" value="' + window.shopUtils.esc(p.name) + '" placeholder="Название">' +
             '      <div class="invalid-feedback edit-purchase-name-error"></div></div>' +
             '    <div class="col-5"><input type="number" class="edit-purchase-quantity form-control form-control-sm" value="' + p.quantity + '" min="0.01" step="0.01"></div>' +
             '    <div class="col-7"><select class="edit-purchase-unit form-select form-select-sm">' + unitsHtml(p.unit_id) + '</select></div>' +
