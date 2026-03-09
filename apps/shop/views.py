@@ -35,6 +35,15 @@ def _broadcast(event_type, payload):
         logger.warning('WebSocket broadcast failed (%s): %s', event_type, e)
 
 
+def _broadcast_shifted_categories(from_order, exclude_pk=None):
+    """Broadcast category.updated for each category that was shifted above from_order."""
+    qs = Category.objects.filter(order__gt=from_order)
+    if exclude_pk is not None:
+        qs = qs.exclude(pk=exclude_pk)
+    for cat in qs:
+        _broadcast('category.updated', {'category': serialize_category(cat)})
+
+
 # ---------------------------------------------------------------------------
 # Pages
 # ---------------------------------------------------------------------------
@@ -105,6 +114,7 @@ def create_category(request):
         return JsonResponse({'error': 'Категория с таким названием уже существует.'}, status=400)
 
     _broadcast('category.created', {'category': serialize_category(category)})
+    _broadcast_shifted_categories(category.order)
     return JsonResponse({'ok': True, 'category': serialize_category(category)}, status=201)
 
 
@@ -135,12 +145,15 @@ def category_detail(request, pk):
     except (TypeError, ValueError):
         order = category.order
 
+    old_order = category.order
     try:
         category.update_with_order_shift(name, order)
     except IntegrityError:
         return JsonResponse({'error': 'Категория с таким названием уже существует.'}, status=400)
 
     _broadcast('category.updated', {'category': serialize_category(category)})
+    if order != old_order:
+        _broadcast_shifted_categories(category.order, exclude_pk=category.pk)
     return JsonResponse({'ok': True, 'category': serialize_category(category)})
 
 

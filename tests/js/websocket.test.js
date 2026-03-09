@@ -391,6 +391,41 @@ describe('category.updated event on view page', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Bug #2 fix: fresh banner lookup (not captured in outer closure)
+// ---------------------------------------------------------------------------
+
+describe('offline banner — fresh DOM lookup', () => {
+  function loadWSWithoutBanner() {
+    document.body.innerHTML = ''; // No banner at load time
+    const listeners = {};
+    const mockSocket = {
+      addEventListener: jest.fn((event, handler) => { listeners[event] = handler; }),
+      close: jest.fn(),
+    };
+    const fn = new Function(
+      'window', 'document', 'location', 'WebSocket', 'setTimeout', 'clearTimeout', 'console',
+      UTILS_CODE + '\n' + WS_CODE
+    );
+    fn(window, document, { protocol: 'http:', host: 'localhost' }, jest.fn(() => mockSocket), jest.fn(), jest.fn(), console);
+    return listeners;
+  }
+
+  test('banner is hidden on open even if banner was not in DOM at load time', () => {
+    const listeners = loadWSWithoutBanner();
+    document.body.innerHTML = '<div id="offline-banner" style="display:block;"></div>';
+    listeners['open']();
+    expect(document.getElementById('offline-banner').style.display).toBe('none');
+  });
+
+  test('banner is shown on close even if banner was not in DOM at load time', () => {
+    const listeners = loadWSWithoutBanner();
+    document.body.innerHTML = '<div id="offline-banner" style="display:none;"></div>';
+    listeners['close']();
+    expect(document.getElementById('offline-banner').style.display).toBe('block');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Invalid JSON in message — should not throw
 // ---------------------------------------------------------------------------
 

@@ -15,7 +15,6 @@
 (function () {
     var WS_URL = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/ws/shop/';
     var RECONNECT_DELAY_MS = 3000;
-    var banner = document.getElementById('offline-banner');
 
     var socket = null;
     var reconnectTimer = null;
@@ -27,7 +26,7 @@
         socket = new WebSocket(WS_URL);
 
         socket.addEventListener('open', function () {
-            if (banner) banner.style.display = 'none';
+            hideOfflineBanner();
             clearTimeout(reconnectTimer);
         });
 
@@ -52,7 +51,13 @@
         });
     }
 
+    function hideOfflineBanner() {
+        var banner = document.getElementById('offline-banner');
+        if (banner) banner.style.display = 'none';
+    }
+
     function showOfflineBanner() {
+        var banner = document.getElementById('offline-banner');
         if (banner) {
             banner.textContent = 'Соединение потеряно, переподключение...';
             banner.style.display = 'block';

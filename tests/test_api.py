@@ -1,6 +1,7 @@
 """API tests: Category и Purchase CRUD + toggle (FR-04, FR-06, FR-07, FR-08, FR-10, FR-11, FR-15)."""
 
 import json
+from unittest.mock import patch as mock_patch
 
 import pytest
 
@@ -430,3 +431,58 @@ def test_delete_category_not_found_returns_404(auth_client):
     """FR-07: DELETE несуществующей категории → 404."""
     response = auth_client.delete('/api/categories/9999/')
     assert response.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Bug #1 fix: broadcast shifted categories on order shift
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_create_category_broadcasts_shifted_categories(auth_client):
+    """Bug #1: category.updated broadcast sent for each shifted category after create."""
+    existing = Category.objects.create(name='Мясо', order=1)
+    with mock_patch('apps.shop.views._broadcast') as mock_broadcast:
+        post(auth_client, '/api/categories/', {'name': 'Молочное', 'order': 1})
+
+    calls = mock_broadcast.call_args_list
+    assert calls[0][0][0] == 'category.created'
+    assert calls[1][0][0] == 'category.updated'
+    shifted_cat = calls[1][0][1]['category']
+    assert shifted_cat['id'] == existing.pk
+    assert shifted_cat['order'] == 2
+
+
+@pytest.mark.django_db
+def test_create_category_no_shift_no_extra_broadcasts(auth_client):
+    """Bug #1: no extra broadcast when new category order doesn't displace others."""
+    with mock_patch('apps.shop.views._broadcast') as mock_broadcast:
+        post(auth_client, '/api/categories/', {'name': 'Молочное', 'order': 99})
+
+    assert mock_broadcast.call_count == 1
+    assert mock_broadcast.call_args[0][0] == 'category.created'
+
+
+@pytest.mark.django_db
+def test_update_category_broadcasts_shifted_categories(auth_client):
+    """Bug #1: category.updated broadcast sent for shifted categories after order change."""
+    cat1 = Category.objects.create(name='Мясо', order=1)
+    cat2 = Category.objects.create(name='Молочное', order=2)
+    with mock_patch('apps.shop.views._broadcast') as mock_broadcast:
+        patch(auth_client, f'/api/categories/{cat2.pk}/', {'name': 'Молочное', 'order': 1})
+
+    event_types = [c[0][0] for c in mock_broadcast.call_args_list]
+    assert event_types.count('category.updated') == 2
+    broadcast_ids = {c[0][1]['category']['id'] for c in mock_broadcast.call_args_list}
+    assert cat1.pk in broadcast_ids
+    assert cat2.pk in broadcast_ids
+
+
+@pytest.mark.django_db
+def test_update_category_name_only_no_extra_broadcasts(auth_client, category):
+    """Bug #1: no extra broadcasts when only name changes (order unchanged)."""
+    with mock_patch('apps.shop.views._broadcast') as mock_broadcast:
+        patch(auth_client, f'/api/categories/{category.pk}/', {'name': 'Новое имя', 'order': category.order})
+
+    assert mock_broadcast.call_count == 1
+    assert mock_broadcast.call_args[0][0] == 'category.updated'
