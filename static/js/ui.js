@@ -410,30 +410,28 @@ function removePurchaseFromView(pk) {
             '    </div>' +
             '  </div>' +
             '  <div class="d-flex gap-1 flex-shrink-0 ms-2">' +
-            '    <button class="btn btn-sm btn-link p-1 text-secondary btn-edit-category" data-category-id="' + cat.id + '"><i class="bi bi-pencil-square"></i></button>' +
-            '    <button class="btn btn-sm btn-link p-1 text-danger btn-delete-category"' +
+            '    <button class="btn btn-link px-2 text-secondary btn-edit-category" data-category-id="' + cat.id + '"><i class="bi bi-pencil-square"></i></button>' +
+            '    <button class="btn btn-link px-2 text-danger btn-delete-category"' +
             '      data-category-id="' + cat.id + '" data-category-name="' + window.shopUtils.esc(cat.name) + '" data-purchase-count="0"><i class="bi bi-trash3"></i></button>' +
             '  </div>' +
             '</div>' +
-            '<div class="category-edit-form card border-primary mb-1" style="display:none;">' +
-            '  <div class="card-body py-2">' +
-            '    <div class="row g-2 align-items-end">' +
-            '      <div class="col-8"><label class="form-label mb-1 small">Название</label>' +
-            '        <input type="text" class="edit-cat-name form-control form-control-sm" value="' + window.shopUtils.esc(cat.name) + '">' +
-            '        <div class="invalid-feedback edit-cat-name-error"></div></div>' +
-            '      <div class="col-4"><label class="form-label mb-1 small">Приоритет</label>' +
-            '        <input type="number" class="edit-cat-order form-control form-control-sm" value="' + cat.order + '" min="1"></div>' +
-            '    </div>' +
-            '    <div class="mt-2 d-flex gap-2">' +
-            '      <button class="btn btn-primary btn-sm btn-save-edit-category" data-category-id="' + cat.id + '">Сохранить</button>' +
-            '      <button class="btn btn-outline-secondary btn-sm btn-cancel-edit-category">Отмена</button>' +
-            '    </div>' +
+            '<div class="category-edit-form form-accent p-3 mb-1" style="display:none;">' +
+            '  <div class="row g-2 align-items-end">' +
+            '    <div class="col-8"><label class="form-label mb-1 small">Название</label>' +
+            '      <input type="text" class="edit-cat-name form-control form-control-sm" value="' + window.shopUtils.esc(cat.name) + '">' +
+            '      <div class="invalid-feedback edit-cat-name-error"></div></div>' +
+            '    <div class="col-4"><label class="form-label mb-1 small">Приоритет</label>' +
+            '      <input type="number" class="edit-cat-order form-control form-control-sm" value="' + cat.order + '" min="1"></div>' +
+            '  </div>' +
+            '  <div class="mt-2 d-flex gap-2">' +
+            '    <button class="btn btn-primary btn-sm btn-save-edit-category" data-category-id="' + cat.id + '">Сохранить</button>' +
+            '    <button class="btn btn-outline-secondary btn-sm btn-cancel-edit-category">Отмена</button>' +
             '  </div>' +
             '</div>' +
             '<div class="category-body">' +
             '  <div class="add-purchase-wrap px-3 py-2">' +
-            '    <button class="btn btn-sm btn-outline-secondary btn-add-purchase" data-category-id="' + cat.id + '"><i class="bi bi-plus"></i> Добавить товар</button>' +
-            '    <div class="new-purchase-form bg-white border rounded p-2 mt-1" style="display:none;">' +
+            '    <button class="btn btn-sm btn-outline-primary btn-add-purchase" data-category-id="' + cat.id + '"><i class="bi bi-plus"></i> Добавить товар</button>' +
+            '    <div class="new-purchase-form form-accent p-2 mt-2 rounded-end" style="display:none;">' +
             '      <div class="row g-2">' +
             '        <div class="col-12"><input type="text" class="new-purchase-name form-control form-control-sm" placeholder="Название">' +
             '          <div class="invalid-feedback new-purchase-name-error"></div></div>' +
@@ -464,10 +462,10 @@ function removePurchaseFromView(pk) {
             '<div class="purchase-display d-flex align-items-center w-100 gap-2">' +
             '  <input type="checkbox" class="toggle-checkbox flex-shrink-0" data-purchase-id="' + p.id + '"' + (p.is_need_to_buy ? ' checked' : '') + '>' +
             '  <span class="flex-grow-1 small">' + window.shopUtils.esc(p.name) + ' — ' + window.shopUtils.fmtQty(p.quantity) + ' ' + window.shopUtils.esc(p.unit_abbreviation) + '</span>' +
-            '  <button class="btn btn-sm btn-link p-1 btn-edit-purchase" data-purchase-id="' + p.id + '"><i class="bi bi-pencil"></i></button>' +
-            '  <button class="btn btn-sm btn-link p-1 text-danger btn-delete-purchase" data-purchase-id="' + p.id + '"><i class="bi bi-trash"></i></button>' +
+            '  <button class="btn btn-link px-2 btn-edit-purchase" data-purchase-id="' + p.id + '"><i class="bi bi-pencil"></i></button>' +
+            '  <button class="btn btn-link px-2 text-danger btn-delete-purchase" data-purchase-id="' + p.id + '"><i class="bi bi-trash"></i></button>' +
             '</div>' +
-            '<div class="purchase-edit-form w-100 bg-white border-top p-2" style="display:none;">' +
+            '<div class="purchase-edit-form w-100 form-accent p-2" style="display:none;">' +
             '  <div class="row g-2">' +
             '    <div class="col-12"><input type="text" class="edit-purchase-name form-control form-control-sm" value="' + window.shopUtils.esc(p.name) + '" placeholder="Название">' +
             '      <div class="invalid-feedback edit-purchase-name-error"></div></div>' +

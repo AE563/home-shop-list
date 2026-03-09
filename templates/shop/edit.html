@@ -20,25 +20,23 @@
     </div>
 
     {# ── New category inline form (hidden) ── #}
-    <div id="new-category-form" class="card mb-3" style="display:none;">
-        <div class="card-body py-2">
-            <div class="row g-2 align-items-end">
-                <div class="col-8">
-                    <label class="form-label mb-1 small">Название</label>
-                    <input type="text" id="new-cat-name" class="form-control form-control-sm"
-                           placeholder="Название категории">
-                    <div class="invalid-feedback" id="new-cat-name-error"></div>
-                </div>
-                <div class="col-4">
-                    <label class="form-label mb-1 small">Приоритет</label>
-                    <input type="number" id="new-cat-order" class="form-control form-control-sm"
-                           value="1" min="1">
-                </div>
+    <div id="new-category-form" class="border border-primary rounded-3 bg-primary bg-opacity-10 p-3 mb-3" style="display:none;">
+        <div class="row g-2 align-items-end">
+            <div class="col-8">
+                <label class="form-label mb-1 small">Название</label>
+                <input type="text" id="new-cat-name" class="form-control form-control-sm"
+                       placeholder="Название категории">
+                <div class="invalid-feedback" id="new-cat-name-error"></div>
             </div>
-            <div class="mt-2 d-flex gap-2">
-                <button id="btn-save-category" class="btn btn-primary btn-sm">Сохранить</button>
-                <button id="btn-cancel-category" class="btn btn-outline-secondary btn-sm">Отмена</button>
+            <div class="col-4">
+                <label class="form-label mb-1 small">Приоритет</label>
+                <input type="number" id="new-cat-order" class="form-control form-control-sm"
+                       value="1" min="1">
             </div>
+        </div>
+        <div class="mt-2 d-flex gap-2">
+            <button id="btn-save-category" class="btn btn-primary btn-sm">Сохранить</button>
+            <button id="btn-cancel-category" class="btn btn-outline-secondary btn-sm">Отмена</button>
         </div>
     </div>
 
@@ -56,11 +54,11 @@
                 </div>
             </div>
             <div class="d-flex gap-1 flex-shrink-0 ms-2">
-                <button class="btn btn-sm btn-link p-1 text-secondary btn-edit-category"
+                <button class="btn btn-link px-2 text-secondary btn-edit-category"
                         data-category-id="{{ category.pk }}">
                     <i class="bi bi-pencil-square"></i>
                 </button>
-                <button class="btn btn-sm btn-link p-1 text-danger btn-delete-category"
+                <button class="btn btn-link px-2 text-danger btn-delete-category"
                         data-category-id="{{ category.pk }}"
                         data-category-name="{{ category.name }}"
                         data-purchase-count="{{ category.all_purchases|length }}">
@@ -70,26 +68,24 @@
         </div>
 
         {# Inline edit form for category (hidden) #}
-        <div class="category-edit-form card border-primary mb-1" style="display:none;">
-            <div class="card-body py-2">
-                <div class="row g-2 align-items-end">
-                    <div class="col-8">
-                        <label class="form-label mb-1 small">Название</label>
-                        <input type="text" class="edit-cat-name form-control form-control-sm"
-                               value="{{ category.name }}">
-                        <div class="invalid-feedback edit-cat-name-error"></div>
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label mb-1 small">Приоритет</label>
-                        <input type="number" class="edit-cat-order form-control form-control-sm"
-                               value="{{ category.order }}" min="1">
-                    </div>
+        <div class="category-edit-form form-accent p-3 mb-1" style="display:none;">
+            <div class="row g-2 align-items-end">
+                <div class="col-8">
+                    <label class="form-label mb-1 small">Название</label>
+                    <input type="text" class="edit-cat-name form-control form-control-sm"
+                           value="{{ category.name }}">
+                    <div class="invalid-feedback edit-cat-name-error"></div>
                 </div>
-                <div class="mt-2 d-flex gap-2">
-                    <button class="btn btn-primary btn-sm btn-save-edit-category"
-                            data-category-id="{{ category.pk }}">Сохранить</button>
-                    <button class="btn btn-outline-secondary btn-sm btn-cancel-edit-category">Отмена</button>
+                <div class="col-4">
+                    <label class="form-label mb-1 small">Приоритет</label>
+                    <input type="number" class="edit-cat-order form-control form-control-sm"
+                           value="{{ category.order }}" min="1">
                 </div>
+            </div>
+            <div class="mt-2 d-flex gap-2">
+                <button class="btn btn-primary btn-sm btn-save-edit-category"
+                        data-category-id="{{ category.pk }}">Сохранить</button>
+                <button class="btn btn-outline-secondary btn-sm btn-cancel-edit-category">Отмена</button>
             </div>
         </div>
 
@@ -107,18 +103,18 @@
                     <span class="flex-grow-1 small">
                         {{ purchase.name }} — {{ purchase.quantity|floatformat:"-2" }} {{ purchase.unit.abbreviation }}
                     </span>
-                    <button class="btn btn-sm btn-link p-1 btn-edit-purchase"
+                    <button class="btn btn-link px-2 btn-edit-purchase"
                             data-purchase-id="{{ purchase.pk }}">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-sm btn-link p-1 text-danger btn-delete-purchase"
+                    <button class="btn btn-link px-2 text-danger btn-delete-purchase"
                             data-purchase-id="{{ purchase.pk }}">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
 
                 {# Inline edit form for purchase (hidden) #}
-                <div class="purchase-edit-form w-100 bg-white border-top p-2" style="display:none;">
+                <div class="purchase-edit-form w-100 form-accent p-2" style="display:none;">
                     <div class="row g-2">
                         <div class="col-12">
                             <input type="text" class="edit-purchase-name form-control form-control-sm"
@@ -151,11 +147,11 @@
 
             {# Add purchase button + form #}
             <div class="add-purchase-wrap px-3 py-2">
-                <button class="btn btn-sm btn-outline-secondary btn-add-purchase"
+                <button class="btn btn-sm btn-outline-primary btn-add-purchase"
                         data-category-id="{{ category.pk }}">
                     <i class="bi bi-plus"></i> Добавить товар
                 </button>
-                <div class="new-purchase-form bg-white border rounded p-2 mt-1" style="display:none;">
+                <div class="new-purchase-form form-accent p-2 mt-2 rounded-end" style="display:none;">
                     <div class="row g-2">
                         <div class="col-12">
                             <input type="text" class="new-purchase-name form-control form-control-sm"
