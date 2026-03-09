@@ -16,7 +16,7 @@
 
 ```bash
 # Активировать виртуальное окружение
-source .venv/bin/activate
+source .venv2/bin/activate   # Python 3.12 (.venv/ — устаревший Python 3.6, не использовать)
 
 # Убедиться, что Redis запущен
 redis-cli ping   # должен вернуть PONG
@@ -25,7 +25,8 @@ redis-cli ping   # должен вернуть PONG
 python manage.py runserver
 
 # Запустить тесты
-pytest
+pytest           # Python тесты (101 passed, coverage 93.62%)
+npm test         # JS тесты (50 passed, Jest)
 
 # Загрузить начальные данные (единицы измерения)
 python manage.py loaddata fixtures/units.json
@@ -37,13 +38,18 @@ python manage.py loaddata fixtures/units.json
 
 | Слой | Технология |
 |------|------------|
-| Backend | Django 4.2, Python 3.11+ |
+| Backend | Django 4.2, Python 3.12 |
 | WebSocket | Django Channels 4 + Daphne (ASGI) |
 | Channel layer | Redis 7+ |
-| БД | SQLite (`db.sqlite3`) |
+| БД (dev) | SQLite (`db.sqlite3`) |
+| БД (prod) | PostgreSQL (psycopg2-binary) |
 | Config | python-decouple (`.env`) |
 | Frontend | Vanilla JS (ES6+), Bootstrap 5 |
-| Тесты | pytest-django, pytest-asyncio |
+| Тесты Python | pytest-django, pytest-asyncio |
+| Тесты JS | Jest + jsdom |
+| Линтеры | Ruff (Python), ESLint (JS) |
+| Static files | Whitenoise 6 (сжатие + отдача статики) |
+| Деплой | Docker, docker-compose, GitHub Actions CI |
 
 **Важно:** Никаких новых зависимостей без явного разрешения пользователя.
 
@@ -56,23 +62,37 @@ config/          — settings.py, urls.py, asgi.py, wsgi.py
 apps/
   users/         — модель User (AbstractUser), login/logout views
   shop/          — Category, Purchase, UnitOfMeasurement; все API; consumers.py
-  core/          — utils.py (вспомогательные функции)
+                   serializers.py — сериализаторы моделей
+                   routing.py — WebSocket URL-роутинг (ws/shop/ → ShopConsumer)
+  core/          — utils.py (вспомогательные функции, cascade_shift — dead code)
 templates/
   base.html      — шапка, переключатель страниц, accordion-кнопки
   shop/view.html — страница просмотра (/)
   shop/edit.html — страница редактирования (/edit/)
   users/login.html
-static/js/
-  ui.js          — DOM: accordion, CRUD-формы, AJAX-запросы
-  websocket.js   — WebSocket клиент, обновление DOM при WS-событиях
+static/
+  css/main.css
+  js/
+    ui.js          — DOM: accordion, CRUD-формы, AJAX-запросы
+    websocket.js   — WebSocket клиент, обновление DOM при WS-событиях
+    utils.js       — window.shopUtils = { esc, fmtQty } (shared между ui и ws)
 tests/
-  conftest.py         — фикстуры: user, auth_client, unit, category, purchase
-  test_models.py      — unit-тесты моделей (~50 тестов)
-  test_api.py         — тесты API endpoints (~40 тестов)
-  test_views.py       — тесты страниц и авторизации (~10 тестов)
-  test_consumers.py   — тесты WebSocket consumer (1 тест)
+  conftest.py              — фикстуры: user, auth_client, unit, category, purchase
+  test_models.py           — unit-тесты моделей
+  test_api.py              — тесты API endpoints
+  test_views.py            — тесты страниц и авторизации
+  test_consumers.py        — тесты WebSocket consumer + broadcast
+  test_serializers.py      — тесты сериализаторов
+  test_utils.py            — тесты утилит
+  js/
+    ui.test.js             — Jest тесты для ui.js
+    websocket.test.js      — Jest тесты для websocket.js
   e2e/test_shopping_flow.py — Selenium (скелет, все тесты пропущены)
 fixtures/units.json   — начальные данные UnitOfMeasurement
+Dockerfile, docker-compose.yml, docker-compose.prod.yml
+entrypoint.sh, deploy.sh   — CD: тесты → git push → ssh → docker up
+requirements.txt, ruff.toml, eslint.config.js, package.json, pytest.ini
+README.md, LICENSE
 ```
 
 ---
@@ -116,7 +136,7 @@ fixtures/units.json   — начальные данные UnitOfMeasurement
 ```json
 { "type": "purchase.created",  "purchase":  { "id": 1, "name": "...", ... } }
 { "type": "purchase.updated",  "purchase":  { "id": 1, "is_need_to_buy": false, ... } }
-{ "type": "purchase.deleted",  "purchase_id": 1 }
+{ "type": "purchase.deleted",  "purchase_id": 1, "category_id": 5 }
 { "type": "category.created",  "category":  { "id": 7, "name": "...", "order": 2 } }
 { "type": "category.updated",  "category":  { "id": 7, "name": "...", "order": 2 } }
 { "type": "category.deleted",  "category_id": 7 }
@@ -162,11 +182,12 @@ purchase      # Purchase(name="Молоко", quantity=2, is_need_to_buy=True)
 
 ### Запуск
 ```bash
-pytest                        # все тесты
+pytest                        # все Python тесты (101 passed, coverage 93.62%)
 pytest tests/test_models.py   # только модели
 pytest tests/test_api.py      # только API
 pytest -k "toggle"            # по имени
 pytest -v                     # с подробным выводом
+npm test                      # JS тесты (50 passed, Jest)
 ```
 
 ### Стиль тестов
@@ -174,6 +195,7 @@ pytest -v                     # с подробным выводом
 - `@pytest.mark.asyncio` для асинхронных тестов (consumers)
 - WebSocket тесты используют `WebsocketCommunicator` из `channels.testing`
 - Имена тестов: `test_<действие>_<ожидаемый_результат>`
+- JS тесты: jsdom + jest, функции экспортируются через `window.*`
 
 ---
 
@@ -195,12 +217,10 @@ pytest -v                     # с подробным выводом
 | WebSocket трансляция (FR-18) | done |
 | WS авто-переподключение (FR-19) | done |
 
-### Осталось сделать (для MVP)
+### Осталось сделать
 
 | Задача | Приоритет | Файлы |
 |--------|-----------|-------|
-| Тесты `test_consumers.py` — broadcast | MUST | `tests/test_consumers.py` |
-| `README.md` — установка, запуск Redis, fixtures | MUST | `README.md` |
 | Кастомные страницы 404/500 | SHOULD | `templates/404.html`, `templates/500.html` |
 | E2E тесты (Selenium) | NICE | `tests/e2e/test_shopping_flow.py` |
 

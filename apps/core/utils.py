@@ -1,5 +1,7 @@
 """Shared utility functions for the Home Shop List project."""
 
+from django.db.models import F
+
 
 def cascade_shift_order(model_class, from_order, exclude_pk=None):
     """
@@ -11,10 +13,4 @@ def cascade_shift_order(model_class, from_order, exclude_pk=None):
     qs = model_class.objects.filter(order__gte=from_order)
     if exclude_pk is not None:
         qs = qs.exclude(pk=exclude_pk)
-    qs.update(order=models.F('order') + 1)
-
-
-try:
-    from django.db import models  # noqa: F401 — imported for F() expression above
-except ImportError:
-    pass
+    qs.update(order=F('order') + 1)
