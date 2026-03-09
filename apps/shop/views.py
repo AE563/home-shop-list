@@ -1,4 +1,5 @@
 import json
+import logging
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -8,9 +9,11 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
-from .consumers import ShopConsumer
+from .consumers import WS_GROUP
 from .models import Category, Purchase, UnitOfMeasurement
 from .serializers import serialize_category, serialize_purchase
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # WebSocket broadcast helper (FR-18)
@@ -19,17 +22,17 @@ from .serializers import serialize_category, serialize_purchase
 
 def _broadcast(event_type, payload):
     """Push a JSON event to all WS clients in the shop group.
-    Silently no-ops when Redis is unavailable (e.g. in tests)."""
+    No-ops when Redis is unavailable — logs a warning instead of crashing."""
     channel_layer = get_channel_layer()
     if channel_layer is None:
         return
     try:
         async_to_sync(channel_layer.group_send)(
-            ShopConsumer.GROUP_NAME,
+            WS_GROUP,
             {'type': 'shop.event', 'payload': {'type': event_type, **payload}},
         )
-    except Exception:
-        pass  # Don't fail HTTP request if Redis is down
+    except Exception as e:
+        logger.warning('WebSocket broadcast failed (%s): %s', event_type, e)
 
 
 # ---------------------------------------------------------------------------

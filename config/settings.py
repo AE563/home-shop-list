@@ -22,7 +22,6 @@ INSTALLED_APPS = [
     # Local
     'apps.users',
     'apps.shop',
-    'apps.core',
 ]
 
 MIDDLEWARE = [
