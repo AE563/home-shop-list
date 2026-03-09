@@ -64,7 +64,7 @@ apps/
   shop/          — Category, Purchase, UnitOfMeasurement; все API; consumers.py
                    serializers.py — сериализаторы моделей
                    routing.py — WebSocket URL-роутинг (ws/shop/ → ShopConsumer)
-  core/          — utils.py (вспомогательные функции, cascade_shift — dead code)
+  core/          — зарезервирован для будущих утилит (сейчас пустой)
 templates/
   base.html      — шапка, переключатель страниц, accordion-кнопки
   shop/view.html — страница просмотра (/)
