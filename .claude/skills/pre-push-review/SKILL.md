@@ -18,18 +18,26 @@ git diff HEAD
 Запомни что изменилось — агенты будут это анализировать.
 Если изменений нет (`git diff HEAD` пустой) — спроси пользователя что именно ревьюить.
 
+**Определи режим по diff:**
+- **NEEDS_PY** = в diff есть файлы `*.py` или `requirements.txt`
+- **NEEDS_JS** = в diff есть файлы `*.js` или `package.json`
+
+Если ни один флаг не активен — пропускаются Фазы 1, 2, 3, 4. Django check (Фаза 5) выполняется всегда.
+
 ---
 
 ## Фаза 1 — Линтеры с авто-фиксом
 
-Запускай **параллельно**:
+_Пропустить если: нет NEEDS_PY и нет NEEDS_JS_
+
+Запускай только нужные линтеры **параллельно**:
 
 ```bash
-# Python
+# Python — только если NEEDS_PY
 .venv2/bin/ruff check apps/ tests/ --fix
 .venv2/bin/ruff format apps/ tests/
 
-# JavaScript
+# JavaScript — только если NEEDS_JS
 npx eslint static/js/ tests/js/ --fix
 ```
 
@@ -41,6 +49,8 @@ npx eslint static/js/ tests/js/ --fix
 ---
 
 ## Фаза 2 — Три агента код-ревью (параллельно)
+
+_Пропустить если: нет NEEDS_PY и нет NEEDS_JS_
 
 Запусти **все три агента одним сообщением** через Agent tool. Передай каждому полный `git diff HEAD`.
 
@@ -73,6 +83,8 @@ npx eslint static/js/ tests/js/ --fix
 
 ## Фаза 3 — Исправить найденное
 
+_Пропустить если Фаза 2 была пропущена_
+
 Дождись всех трёх агентов. Агрегируй находки:
 
 - Исправь каждую реальную проблему напрямую в коде
@@ -83,10 +95,18 @@ npx eslint static/js/ tests/js/ --fix
 
 ## Фаза 4 — Тесты
 
+Запускай только нужные тесты:
+
 ```bash
+# Python — только если NEEDS_PY
 .venv2/bin/pytest --no-cov -q
+
+# JavaScript — только если NEEDS_JS
 npm test
 ```
+
+_pytest — пропустить если нет NEEDS_PY_
+_npm test — пропустить если нет NEEDS_JS_
 
 - Все тесты должны быть зелёными
 - Если красный — исправь код **или** тест, потом повтори

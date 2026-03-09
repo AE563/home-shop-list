@@ -5,6 +5,22 @@
 
 ---
 
+## Место в инфраструктуре
+
+Этот проект — один из нескольких Django-сервисов на одном сервере (см. `TASK_docker_infrastructure.md`).
+
+| Роль | Детали |
+|------|--------|
+| Имя контейнера | `groceries_web` |
+| Внешний URL | `groceries.mysite.com` |
+| Общая сеть | `shared_net` (создаётся в `mysite-infrastructure`) |
+| PostgreSQL / Redis | Общие, в `mysite-infrastructure` |
+| Продакшн-запуск | `docker compose -f docker-compose.prod.yml up -d` |
+
+Nginx, PostgreSQL и Redis вынесены в отдельный репо `mysite-infrastructure`. Этот репо содержит только приложение.
+
+---
+
 ## Принятые решения
 
 | Решение | Почему |
