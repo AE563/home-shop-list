@@ -332,6 +332,142 @@ describe('add-category form validation', () => {
 });
 
 // ---------------------------------------------------------------------------
+// save-category: duplicate prevention (WS race condition)
+// ---------------------------------------------------------------------------
+
+describe('save-category duplicate prevention', () => {
+  test('does not insert category block when WS already added it (race condition)', async () => {
+    document.getElementById('new-cat-name').value = 'Молочное';
+
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ category: { id: 999, name: 'Молочное', order: 1 } }),
+      })
+    );
+
+    // Simulate WS inserting the block before AJAX .then() fires
+    const wsBlock = document.createElement('div');
+    wsBlock.className = 'category-block';
+    wsBlock.dataset.categoryId = '999';
+    document.getElementById('shop-edit').appendChild(wsBlock);
+
+    document.getElementById('btn-save-category').dispatchEvent(
+      new MouseEvent('click', { bubbles: true })
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(
+      document.querySelectorAll('.category-block[data-category-id="999"]')
+    ).toHaveLength(1);
+  });
+
+  test('adds category block when WS has not yet inserted it', async () => {
+    document.getElementById('new-cat-name').value = 'Бакалея';
+
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ category: { id: 998, name: 'Бакалея', order: 2 } }),
+      })
+    );
+
+    document.getElementById('btn-save-category').dispatchEvent(
+      new MouseEvent('click', { bubbles: true })
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(
+      document.querySelectorAll('.category-block[data-category-id="998"]')
+    ).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// save-purchase: duplicate prevention (WS race condition)
+// ---------------------------------------------------------------------------
+
+describe('save-purchase duplicate prevention', () => {
+  function setupCategoryWithForm() {
+    const block = document.createElement('div');
+    block.className = 'category-block';
+    block.dataset.categoryId = '10';
+    block.innerHTML = `
+      <div class="category-header"></div>
+      <div class="category-body">
+        <div class="add-purchase-wrap">
+          <button class="btn-add-purchase" data-category-id="10">Добавить</button>
+          <div class="new-purchase-form">
+            <input class="new-purchase-name" value="Молоко">
+            <div class="new-purchase-name-error"></div>
+            <input class="new-purchase-quantity" value="2">
+            <select class="new-purchase-unit"><option value="1">шт.</option></select>
+            <button class="btn-save-new-purchase" data-category-id="10">Сохранить</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('shop-edit').appendChild(block);
+    return block;
+  }
+
+  test('does not insert purchase item when WS already added it (race condition)', async () => {
+    const block = setupCategoryWithForm();
+
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          purchase: { id: 555, name: 'Молоко', quantity: '2', unit_abbreviation: 'шт.', unit_id: 1, is_need_to_buy: true, category_id: 10 },
+        }),
+      })
+    );
+
+    // Simulate WS inserting the purchase before AJAX .then() fires
+    const wsItem = document.createElement('div');
+    wsItem.className = 'purchase-item';
+    wsItem.dataset.purchaseId = '555';
+    const body = block.querySelector('.category-body');
+    body.insertBefore(wsItem, body.querySelector('.add-purchase-wrap'));
+
+    block.querySelector('.btn-save-new-purchase').dispatchEvent(
+      new MouseEvent('click', { bubbles: true })
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(
+      document.querySelectorAll('.purchase-item[data-purchase-id="555"]')
+    ).toHaveLength(1);
+  });
+
+  test('adds purchase item when WS has not yet inserted it', async () => {
+    setupCategoryWithForm();
+
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          purchase: { id: 556, name: 'Сыр', quantity: '0.3', unit_abbreviation: 'кг', unit_id: 1, is_need_to_buy: true, category_id: 10 },
+        }),
+      })
+    );
+
+    document.querySelector('.btn-save-new-purchase').dispatchEvent(
+      new MouseEvent('click', { bubbles: true })
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(
+      document.querySelectorAll('.purchase-item[data-purchase-id="556"]')
+    ).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Checkbox toggle: PATCH is sent with correct URL and payload (FR-15)
 // ---------------------------------------------------------------------------
 

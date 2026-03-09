@@ -179,8 +179,11 @@ function removePurchaseFromView(pk) {
                 resetNewCatForm();
                 var noMsg = document.getElementById('no-categories-msg');
                 if (noMsg) noMsg.remove();
-                var anchor = document.getElementById('new-category-form');
-                anchor.parentNode.insertBefore(buildCategoryBlock(data.category), anchor.nextSibling);
+                // Guard: WS may have already inserted this block before the HTTP response arrived
+                if (!document.querySelector('#shop-edit .category-block[data-category-id="' + data.category.id + '"]')) {
+                    var anchor = document.getElementById('new-category-form');
+                    anchor.parentNode.insertBefore(buildCategoryBlock(data.category), anchor.nextSibling);
+                }
             })
             .catch(function (err) { showErr(nameEl, errEl, err.message); });
     });
@@ -318,11 +321,13 @@ function removePurchaseFromView(pk) {
                     wrap.querySelector('.new-purchase-form').style.display = 'none';
                     wrap.querySelector('.btn-add-purchase').style.display = '';
                     nameEl.value = '';
-                    // Update purchase count on delete-category button
-                    var block  = wrap.closest('.category-block');
-                    var delBtn = block && block.querySelector('.btn-delete-category');
-                    if (delBtn) delBtn.dataset.purchaseCount = parseInt(delBtn.dataset.purchaseCount || 0) + 1;
-                    wrap.parentNode.insertBefore(buildPurchaseItem(data.purchase), wrap);
+                    // Guard: WS may have already inserted this item before the HTTP response arrived
+                    if (!document.querySelector('#shop-edit .purchase-item[data-purchase-id="' + data.purchase.id + '"]')) {
+                        var block  = wrap.closest('.category-block');
+                        var delBtn = block && block.querySelector('.btn-delete-category');
+                        if (delBtn) delBtn.dataset.purchaseCount = parseInt(delBtn.dataset.purchaseCount || 0) + 1;
+                        wrap.parentNode.insertBefore(buildPurchaseItem(data.purchase), wrap);
+                    }
                 })
                 .catch(function (err) { showErr(nameEl, errEl, err.message); });
             return;
