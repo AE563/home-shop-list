@@ -11,11 +11,16 @@ description: Vanilla JavaScript expertise for this project. Use when writing or 
 
 ```
 static/js/
+├── utils.js       -- Общие утилиты: window.shopUtils = { esc, fmtQty }
 ├── ui.js          -- Вся DOM-логика: accordion, CRUD-формы, AJAX-запросы
 └── websocket.js   -- WebSocket клиент; использует DOM-билдеры из ui.js
 ```
 
 **Правило:** `websocket.js` не знает про Django и не делает HTTP-запросы. `ui.js` не знает про WebSocket. Взаимодействие через глобальные функции, экспортируемые из `ui.js` в `window`.
+
+`utils.js` подключается первым (до `ui.js` и `websocket.js`):
+- `window.shopUtils.esc(str)` — экранирование HTML для безопасной вставки в `innerHTML`
+- `window.shopUtils.fmtQty(qty)` — форматирование количества (убирает лишние нули: `2.00` → `2`)
 
 ---
 
@@ -100,12 +105,14 @@ document.addEventListener('click', function (e) {
 
 ```javascript
 // ui.js -- экспортируем в window для websocket.js
+// Используй window.shopUtils.esc() для экранирования, shopUtils.fmtQty() для количества
 window.buildPurchaseRow = function (purchase, showEditControls = false) {
   const div = document.createElement('div');
   div.className = 'd-flex align-items-center px-3 py-2 border-bottom';
   div.dataset.purchaseId = purchase.id;
   if (!purchase.is_need_to_buy) div.classList.add('opacity-50');
 
+  const { esc, fmtQty } = window.shopUtils;
   div.innerHTML = `
     <div class="form-check me-3 mb-0">
       <input class="form-check-input purchase-checkbox"
@@ -114,8 +121,8 @@ window.buildPurchaseRow = function (purchase, showEditControls = false) {
              data-purchase-id="${purchase.id}">
     </div>
     <span class="flex-grow-1">
-      ${escapeHtml(purchase.name)}
-      <small class="text-muted ms-2">${purchase.quantity} ${escapeHtml(purchase.unit_abbreviation)}</small>
+      ${esc(purchase.name)}
+      <small class="text-muted ms-2">${fmtQty(purchase.quantity)} ${esc(purchase.unit_abbreviation)}</small>
     </span>
   `;
   return div;
@@ -129,13 +136,6 @@ window.buildCategorySection = function (category) {
   // ... разметка
   return div;
 };
-
-// Всегда экранируй пользовательский ввод перед вставкой в innerHTML
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
 ```
 
 ---
@@ -245,7 +245,7 @@ function validateCategoryForm(name) {
 
 ## Правила
 
-- **Никогда не используй `innerHTML` с пользовательскими данными** — только через `escapeHtml()` или `textContent`
+- **Никогда не используй `innerHTML` с пользовательскими данными** — только через `window.shopUtils.esc()` или `textContent`
 - **Не используй `id` для динамических элементов** — используй `data-*` атрибуты и `querySelector`
 - **Один обработчик события на тип действия** — используй делегирование, не навешивай обработчики в цикле
 - **`async/await` вместо `.then().catch()` цепочек** — код читаемее

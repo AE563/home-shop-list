@@ -47,7 +47,7 @@ def user(db):
 
 
 @pytest.fixture
-def client_auth(client, user):
+def auth_client(client, user):
     client.force_login(user)
     return client
 
@@ -109,12 +109,11 @@ class TestPurchaseModel:
         item = Purchase.objects.create(name='Кефир', category=category, unit=unit, quantity=1)
         assert item.is_need_to_buy is True
 
-    def test_quantity_must_be_positive(self, category, unit):
-        """Количество <= 0 должно вызывать ValidationError."""
-        from django.core.exceptions import ValidationError
-        item = Purchase(name='Тест', category=category, unit=unit, quantity=0)
-        with pytest.raises(ValidationError):
-            item.full_clean()
+    def test_set_need_to_buy_persists(self, purchase):
+        """set_need_to_buy сохраняет значение в БД."""
+        purchase.set_need_to_buy(False)
+        purchase.refresh_from_db()
+        assert purchase.is_need_to_buy is False
 ```
 
 ## Тесты views и AJAX (test_views.py)
@@ -132,17 +131,17 @@ class TestViewPageAccess:
         assert response.status_code == 302
         assert '/login' in response['Location']
 
-    def test_authenticated_user_sees_view_page(self, client_auth):
-        response = client_auth.get('/')
+    def test_authenticated_user_sees_view_page(self, auth_client):
+        response = auth_client.get('/')
         assert response.status_code == 200
 
-    def test_only_needed_items_shown_on_view_page(self, client_auth, purchase, category, unit):
+    def test_only_needed_items_shown_on_view_page(self, auth_client, purchase, category, unit):
         from apps.shop.models import Purchase
         not_needed = Purchase.objects.create(
             name='Сыр', category=category, unit=unit,
             quantity=1, is_need_to_buy=False
         )
-        response = client_auth.get('/')
+        response = auth_client.get('/')
         content = response.content.decode()
         assert 'Молоко' in content       # is_need_to_buy=True -- должен быть
         assert 'Сыр' not in content      # is_need_to_buy=False -- не должен быть
@@ -151,8 +150,8 @@ class TestViewPageAccess:
 @pytest.mark.django_db
 class TestTogglePurchaseAPI:
 
-    def test_toggle_sets_is_need_to_buy_false(self, client_auth, purchase):
-        response = client_auth.patch(
+    def test_toggle_sets_is_need_to_buy_false(self, auth_client, purchase):
+        response = auth_client.patch(
             f'/api/purchases/{purchase.pk}/toggle/',
             data=json.dumps({'is_need_to_buy': False}),
             content_type='application/json',
@@ -161,8 +160,8 @@ class TestTogglePurchaseAPI:
         purchase.refresh_from_db()
         assert purchase.is_need_to_buy is False
 
-    def test_toggle_returns_json(self, client_auth, purchase):
-        response = client_auth.patch(
+    def test_toggle_returns_json(self, auth_client, purchase):
+        response = auth_client.patch(
             f'/api/purchases/{purchase.pk}/toggle/',
             data=json.dumps({'is_need_to_buy': False}),
             content_type='application/json',
@@ -178,17 +177,17 @@ class TestTogglePurchaseAPI:
 @pytest.mark.django_db
 class TestCategoryAPI:
 
-    def test_create_category(self, client_auth):
-        response = client_auth.post(
+    def test_create_category(self, auth_client):
+        response = auth_client.post(
             '/api/categories/',
             data=json.dumps({'name': 'Фрукты', 'order': 1}),
             content_type='application/json',
         )
         assert response.status_code == 201
 
-    def test_delete_category_cascades_purchases(self, client_auth, category, purchase):
+    def test_delete_category_cascades_purchases(self, auth_client, category, purchase):
         from apps.shop.models import Purchase
-        client_auth.delete(f'/api/categories/{category.pk}/')
+        auth_client.delete(f'/api/categories/{category.pk}/')
         assert not Purchase.objects.filter(pk=purchase.pk).exists()
 ```
 
@@ -231,7 +230,7 @@ class TestShopConsumer:
         await channel_layer.group_send(
             'shop',
             {
-                'type': 'shop.update',
+                'type': 'shop.event',
                 'payload': {'type': 'purchase.updated', 'purchase_id': purchase.pk, 'is_need_to_buy': False},
             }
         )

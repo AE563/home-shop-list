@@ -19,14 +19,18 @@ import os
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-import apps.shop.routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
+# ВАЖНО: инициализировать Django до любых импортов ORM/apps
+django_asgi_app = get_asgi_application()
+
+from apps.shop.routing import websocket_urlpatterns  # noqa: E402
+
 application = ProtocolTypeRouter({
-    'http': get_asgi_application(),
+    'http': django_asgi_app,
     'websocket': AuthMiddlewareStack(
-        URLRouter(apps.shop.routing.websocket_urlpatterns)
+        URLRouter(websocket_urlpatterns)
     ),
 })
 ```
@@ -47,11 +51,11 @@ CHANNEL_LAYERS = {
 ## WebSocket routing (apps/shop/routing.py)
 
 ```python
-from django.urls import re_path
-from . import consumers
+from django.urls import path
+from .consumers import ShopConsumer
 
 websocket_urlpatterns = [
-    re_path(r'ws/shop/$', consumers.ShopConsumer.as_asgi()),
+    path('ws/shop/', ShopConsumer.as_asgi()),
 ]
 ```
 
@@ -81,7 +85,7 @@ class ShopConsumer(AsyncWebsocketConsumer):
         pass
 
     # Handler called by channel layer when a broadcast is sent
-    async def shop_update(self, event):
+    async def shop_event(self, event):
         await self.send(text_data=json.dumps(event['payload']))
 ```
 
@@ -91,20 +95,21 @@ class ShopConsumer(AsyncWebsocketConsumer):
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-channel_layer = get_channel_layer()
+def _broadcast(event_type: str, payload: dict):
+    """Push a JSON event to all WS clients. No-ops if Redis unavailable."""
+    channel_layer = get_channel_layer()  # вызывать внутри функции — на старте может быть None
+    if channel_layer is None:
+        return
+    try:
+        async_to_sync(channel_layer.group_send)(
+            ShopConsumer.GROUP_NAME,
+            {'type': 'shop.event', 'payload': {'type': event_type, **payload}},
+        )
+    except Exception:
+        pass  # не ломаем HTTP-ответ если Redis недоступен
 
-def broadcast(payload: dict):
-    """Send a message to all connected WebSocket clients."""
-    async_to_sync(channel_layer.group_send)(
-        'shop',
-        {
-            'type': 'shop.update',  # Maps to consumer method shop_update()
-            'payload': payload,
-        }
-    )
-
-# Call after any data change:
-broadcast({'type': 'purchase.updated', 'purchase_id': item.pk, 'is_need_to_buy': False})
+# Вызов после любого изменения данных:
+_broadcast('purchase.updated', {'purchase': serialize_purchase(item)})
 ```
 
 ## Event type naming convention
@@ -122,7 +127,7 @@ category.deleted
 
 ```javascript
 (function () {
-  const WS_URL = `ws://${window.location.host}/ws/shop/`;
+  const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/shop/`;
   const RECONNECT_DELAY_MS = 3000;
   let socket;
 
